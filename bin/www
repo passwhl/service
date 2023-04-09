@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+// 导入
+let app = require('../app');
+let debug = require('debug')('nodejs-service:server');
+let http = require('http');
+
+// 非pm2 启动则加载配置文件进来
+if(!process.env.NODE_ENV){
+  console.log(new Date().toString()+"-------------加载配置文件")
+  let pm2_config = require('../pm2.config')
+  let env = pm2_config.apps[0].env;
+  for (let key in env)process.env[key]=env[key];
+}
+
+
+// 端口
+let port = process.env.PORT || '3000';
+let port1 = parseInt(port, 10);
+if ( (!isNaN(port1)) && port1>0) port = port1;
+app.set('port', port);
+
+// 创建服务
+let server = http.createServer(app);
+
+// 服务启动失败
+server.on('error', error=>{
+  if (error['syscall'] !== 'listen')throw error;
+  let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  let msg = null;
+  if(error.code === 'EACCES')msg =bind + ' requires elevated privileges';
+  if(error.code === 'EADDRINUSE')msg =bind + ' is already in use';
+  if(msg)console.error(bind + ' is already in use');
+  if(msg)process.exit(1);
+  throw error;
+});
+
+// 监听服务启动
+server.on('listening', ()=>{
+  let address = server.address();
+  let bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + address.port;
+  debug('Listening on ' + bind);
+});
+
+// 启动服务
+server.listen(port);
