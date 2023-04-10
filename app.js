@@ -13,8 +13,9 @@ app.use(require('morgan',{skip:(req,res)=>res.status=304})('dev'));
 
 // 配置自定义中间件
 let base = require('./base');
-app.use(base.intercept_cross);      // 跨域配置
-app.use(base.intercept_token);      // token校验配置
+let appIntercept = require('./app-intercept');
+app.use(appIntercept.cross);      // 跨域配置
+app.use(appIntercept.token);      // token校验配置
 
 // 路由配置
 app.use('/', require('./routes/login'));

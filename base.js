@@ -7,35 +7,12 @@ class Base{
 
 
     // 生成token，expiresIn单位s
-    getToken(userinfo,expiresIn = process.env.JWT_EXPIRES/2){
+    getToken(userinfo,expiresIn = process.env.JWT_EXPIRES/24){
         return jwt.sign(userinfo,process.env.JWT_PWD,{expiresIn})
     }
 
     getRefreshToken(userinfo,expiresIn = process.env.JWT_EXPIRES){
         return jwt.sign(userinfo,process.env.JWT_PWD,{expiresIn})
-    }
-
-
-    // token校验拦截器
-    intercept_token(req, res, next){
-        let token_skip = ['/login','/refreshToken'];
-        if(token_skip.indexOf(req.originalUrl)!=-1)return next();
-        jwt.verify(req.headers.accesstoken,process.env.JWT_PWD,(err,decoded)=>{
-            if(err && err.name=='TokenExpiredError')return res.status(402).json("登录过期");
-            if(err)return res.status(401).json("请先登录");
-            req.body['userInfo'] = decoded;
-            next();
-        })
-    }
-
-    // 允许跨域
-    intercept_cross(req, res, next){
-        res.header("Access-Control-Allow-Origin", "*")
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , AccessToken,RefreshToken');
-        res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-        res.header('Access-Control-Expose-Headers', "*");
-        if(req.method.toLowerCase() == 'options')return res.status(200).json();
-        next()
     }
 
     // 日志文件定时处理

@@ -26,6 +26,15 @@ router.post('/delete', async function(req, res, next) {
     res.json('删除用户成功!')
 });
 
+router.post('/changePwd', async function(req, res, next) {
+    if(!req.body.pwd) return res.status(500).json('请输入新密码!');
+    let uid = req.body.uid || req.body.userInfo.uid;
+    let data = [req.body.pwd, uid];
+    let result = await base.execSql('UPDATE tb_user SET pwd = ? WHERE uid = ?',data);
+    console.info('修改密码结果',result)
+    res.json('修改密码成功!')
+});
+
 router.post('/list', async function(req, res, next) {
     let pageNum = req.body.pageNum || 1;
     let pageSize = req.body.pageSize || 1000;
