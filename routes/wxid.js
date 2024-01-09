@@ -1,6 +1,6 @@
 let express = require('express');
 let router = express.Router();
-let base = require('../base');
+let base = require('./base');
 
 router.post('/add', async function(req, res, next) {
     let user = req.body.userInfo.name;

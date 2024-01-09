@@ -11,22 +11,11 @@ app.use(require('cookie-parser')());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(require('morgan',{skip:(req,res)=>res.status=304})('dev'));
 
-// 配置自定义中间件
-let base = require('./base');
-let appIntercept = require('./app-intercept');
-app.use(appIntercept.cross);      // 跨域配置
-app.use(appIntercept.token);      // token校验配置
-
-// 路由配置
-app.use('/', require('./routes/login'));
-app.use('/user', require('./routes/user'));
-app.use('/wxid', require('./routes/wxid'));
+// 主路由
+app.use('/', require('./routes/index'));
 
 // 定时任务
-let schedule = require('node-schedule');
-//每分钟的第30秒定时执行一次:
-schedule.scheduleJob('0 0 0 ? * *',base.job_hand_log);
-
+require('./common/schedule')
 
 // 导出app
 module.exports = app;

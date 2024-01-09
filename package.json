@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "pm2 flush && pm2 start pm2.config.js",
-    "stop": "pm2 flush && pm2 delete pm2.config.js"
+    "start": "nodemon bin/www --env=development",
+    "run": "pm2 flush && pm2 start config.js --env=development",
+    "stop": "pm2 flush && pm2 delete config.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -17,5 +18,8 @@
     "morgan": "~1.9.1",
     "mysql": "^2.18.1",
     "node-schedule": "^2.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

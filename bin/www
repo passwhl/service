@@ -1,20 +1,12 @@
 #!/usr/bin/env node
-
-// 导入
+// require
 let app = require('../app');
-let debug = require('debug')('nodejs-service:server');
 let http = require('http');
 
-// 非pm2 启动则加载配置文件进来
-if(!process.env.NODE_ENV){
-  console.log(new Date().toString()+"-------------加载配置文件")
-  let pm2_config = require('../pm2.config')
-  let env = pm2_config.apps[0].env;
-  for (let key in env)process.env[key]=env[key];
-}
+// 复用加载pm2 config.js
+loadConfig();
 
-
-// 端口
+// 配置端口
 let port = process.env.PORT || '3000';
 let port1 = parseInt(port, 10);
 if ( (!isNaN(port1)) && port1>0) port = port1;
@@ -22,10 +14,20 @@ app.set('port', port);
 
 // 创建服务
 let server = http.createServer(app);
+server.on('error', onError);        // 服务启动失败
+server.on('listening', onSuccess);  // 服务启动成功
+server.listen(port);                      // 启动服务
 
-// 服务启动失败
-server.on('error', error=>{
-  if (error['syscall'] !== 'listen')throw error;
+// 启动成功回调
+function onSuccess(){
+  let address = server.address();
+  let bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + address.port;
+  console.info('Listening on ' + bind);
+}
+
+// 启动异常处理
+function onError(error){
+  if (error['syscall'] !== 'listen') throw error;
   let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
   let msg = null;
   if(error.code === 'EACCES')msg =bind + ' requires elevated privileges';
@@ -33,14 +35,17 @@ server.on('error', error=>{
   if(msg)console.error(bind + ' is already in use');
   if(msg)process.exit(1);
   throw error;
-});
+}
 
-// 监听服务启动
-server.on('listening', ()=>{
-  let address = server.address();
-  let bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + address.port;
-  debug('Listening on ' + bind);
-});
-
-// 启动服务
-server.listen(port);
+// 命令行和pm2公用配置文件，根据--env获取对应环境配置
+function loadConfig(){
+  // pm2指定配置文件启动的不需要手动加载，命令行启动的手动加载config.js
+  if(process.env.NODE_ENV)return;
+  console.log(new Date().toString()+":加载配置文件")
+  let args = process.argv.filter(arg=>/^--env+=/.test(arg));
+  let envName = args.length!=0 ? args[0].split('=')[1]:'production';
+  let appConfig = require('../config').apps[0];
+  let envKeys = Object.keys(appConfig).filter(key=>key.startsWith('env'));
+  let envKey = envKeys.filter(key=>appConfig[key].NODE_ENV==envName);
+  for (let key in appConfig[envKey]) process.env[key]=appConfig[envKey][key];
+}
