@@ -1,3 +1,5 @@
 .idea/*
 logs/*
 node_modules/*
+*.iml
+.Ds_Store
